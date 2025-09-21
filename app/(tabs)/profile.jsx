@@ -1,4 +1,4 @@
-import { View, Text, Image, FlatList, TouchableOpacity } from 'react-native'
+import { View, Text, Image, FlatList, TouchableOpacity, Alert, Platform } from 'react-native'
 import React from 'react'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAuth, useUser } from '@clerk/clerk-expo';
@@ -46,15 +46,57 @@ export default function Profile() {
   console.log('Profile - User fullName:', user?.fullName);
   const router = useRouter();
   const { signOut } = useAuth();
-  const onPressMenu = (menu) => {
+  const showAlert = (message) => {
+    if (Platform.OS === 'web') {
+      alert(message);
+    } else {
+      Alert.alert('Alert', message);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      console.log('Logging out user...');
+      await signOut();
+      console.log('User signed out successfully');
+      
+      // Clear any cached data and redirect to login
+      router.replace('/login');
+      console.log('Redirected to login screen');
+    } catch (error) {
+      console.error('Error during logout:', error);
+      showAlert('Error during logout. Redirecting to login...');
+      // Even if there's an error, try to redirect to login
+      router.replace('/login');
+    }
+  };
+
+  const onPressMenu = async (menu) => {
     if (menu.path == 'logout') {
-      signOut();
-      router.replace('/../login')
+      // Show confirmation dialog
+      if (Platform.OS === 'web') {
+        const confirmed = window.confirm('Are you sure you want to logout?');
+        if (confirmed) {
+          await handleLogout();
+        }
+      } else {
+        Alert.alert(
+          'Logout',
+          'Are you sure you want to logout?',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { 
+              text: 'Logout', 
+              style: 'destructive',
+              onPress: handleLogout
+            }
+          ]
+        );
+      }
       return;
     }
 
     router.push(menu.path)
-
   }
   const renderHeader = () => {
     // Get display name - try multiple sources

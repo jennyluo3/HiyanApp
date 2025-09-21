@@ -1,9 +1,35 @@
-import { View, Text } from 'react-native'
-import React from 'react'
-import { Tabs } from 'expo-router'
+import { View, Text, ActivityIndicator } from 'react-native'
+import React, { useEffect } from 'react'
+import { Tabs, useRouter } from 'expo-router'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Colors from './../../constants/Colors'
+import { useUser } from '@clerk/clerk-expo'
+
 export default function TabLayout() {
+  const { user, isLoaded } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoaded && !user) {
+      console.log('No user found, redirecting to login...');
+      router.replace('/login');
+    }
+  }, [isLoaded, user, router]);
+
+  // Show loading while checking authentication
+  if (!isLoaded) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={Colors.PRIMARY} />
+        <Text style={{ marginTop: 10, fontFamily: 'outfit' }}>Loading...</Text>
+      </View>
+    );
+  }
+
+  // If no user, don't render tabs (will redirect)
+  if (!user) {
+    return null;
+  }
   return (
     <Tabs
     screenOptions={{
