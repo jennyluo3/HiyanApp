@@ -215,6 +215,14 @@ export default function PetListItem({pet, onPetUpdated}) {
 
             }}>{pet.age} YRS</Text>
         </View>
+        {pet?.status==='Adopted' && (
+            <Text style={{
+                marginTop:4,
+                fontFamily:'outfit-medium',
+                fontSize:12,
+                color: Colors.SECONDARY
+            }}>Adopted</Text>
+        )}
         </TouchableOpacity>
 
         {/* Action Menu Modal */}

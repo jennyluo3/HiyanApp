@@ -30,10 +30,17 @@ export default function PetInfo({pet}) {
                 fontFamily:'outfit',
                 fontSize:16,
                 color:Colors.GRAY
-            }}>{pet?.address}</Text>
+            }}>{pet?.adress || pet?.address}</Text>
         </View>
           <MarkFav pet={pet}/>
       </View>
+      {pet?.status==='Adopted' && (
+        <View style={{ paddingHorizontal:20, paddingBottom:10 }}>
+          <Text style={{ fontFamily:'outfit-medium', color:Colors.SECONDARY }}>
+            Adopted by: {pet?.adoptedByName || pet?.adoptedByEmail || 'Unknown'}
+          </Text>
+        </View>
+      )}
     </View>
   )
 }

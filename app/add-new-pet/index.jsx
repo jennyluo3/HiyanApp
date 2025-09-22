@@ -12,7 +12,7 @@ import { useUser } from '@clerk/clerk-expo';
 export default function AddNewPet() {
     const navigation=useNavigation();
     const [formData,setFormData]=useState(
-        { category:'Dogs',sex:'Male'}
+        { category:'Dogs',sex:'Male', status:'Available'}
     );
 
     // Cross-platform alert function
@@ -106,7 +106,7 @@ export default function AddNewPet() {
         console.log('Form data:', formData);
         
         // Check if all required fields are filled
-        const requiredFields = ['name', 'category', 'breed', 'age', 'sex', 'weight', 'adress', 'About'];
+        const requiredFields = ['name', 'category', 'breed', 'age', 'sex', 'weight', 'adress', 'About', 'status'];
         const missingFields = requiredFields.filter(field => !formData[field]);
         
         if(missingFields.length > 0) {
@@ -336,6 +336,18 @@ export default function AddNewPet() {
         <Text style={styles.label}>Address *</Text>
         <TextInput style={styles.input} 
         onChangeText={(value)=>handleInputChange('adress',value)} />
+      </View>
+
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Status *</Text>
+        <Picker
+            selectedValue={formData.status}
+            style={styles.input}
+            onValueChange={(val)=>handleInputChange('status',val)}
+        >
+            <Picker.Item label="Available" value="Available" />
+            <Picker.Item label="Adopted" value="Adopted" />
+        </Picker>
       </View>
 
       <View style={styles.inputContainer}>

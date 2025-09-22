@@ -1,6 +1,6 @@
 import { View, Text, Image, TextInput, StyleSheet, ScrollView, TouchableOpacity, Pressable, ActivityIndicator, Platform, Alert } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { useRouter, useLocalSearchParams } from 'expo-router'
+import { useRouter, useLocalSearchParams, useNavigation } from 'expo-router'
 import Colors from './../../constants/Colors'
 import { Picker } from '@react-native-picker/picker';
 import { collection, doc, getDocs, updateDoc } from 'firebase/firestore';
@@ -11,6 +11,7 @@ import { useUser } from '@clerk/clerk-expo';
 
 export default function EditPet() {
     const router = useRouter();
+    const navigation = useNavigation();
     const { user } = useUser();
     const params = useLocalSearchParams();
     
@@ -22,7 +23,10 @@ export default function EditPet() {
         sex: params.sex || 'Male',
         weight: params.weight || '',
         adress: params.adress || '',
-        About: params.About || ''
+        About: params.About || '',
+        status: params.status || 'Available',
+        adoptedByName: params.adoptedByName || '',
+        adoptedByEmail: params.adoptedByEmail || ''
     });
 
     const [gender, setGender] = useState(params.sex || 'Male');
@@ -42,6 +46,11 @@ export default function EditPet() {
 
     useEffect(() => {
         GetCategories();
+        // Clean header title so it doesn't show index/edit
+        navigation.setOptions({
+            headerTitle: 'Edit Pet',
+            headerBackTitleVisible: false
+        });
     }, []);
 
     const GetCategories = async () => {
@@ -100,7 +109,7 @@ export default function EditPet() {
         console.log('Form data:', formData);
         
         // Check if all required fields are filled
-        const requiredFields = ['name', 'category', 'breed', 'age', 'sex', 'weight', 'adress', 'About'];
+        const requiredFields = ['name', 'category', 'breed', 'age', 'sex', 'weight', 'adress', 'About', 'status'];
         const missingFields = requiredFields.filter(field => !formData[field]);
         
         if (missingFields.length > 0) {
@@ -310,6 +319,35 @@ export default function EditPet() {
                     value={formData.adress}
                     onChangeText={(value) => handleInputChange('adress', value)} />
             </View>
+
+            <View style={styles.inputContainer}>
+                <Text style={styles.label}>Status *</Text>
+                <Picker
+                    selectedValue={formData.status}
+                    style={styles.input}
+                    onValueChange={(val)=>handleInputChange('status', val)}
+                >
+                    <Picker.Item label="Available" value="Available" />
+                    <Picker.Item label="Adopted" value="Adopted" />
+                </Picker>
+            </View>
+
+            {formData.status==='Adopted' && (
+                <View>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Adopted By (Name)</Text>
+                        <TextInput style={styles.input}
+                            value={formData.adoptedByName}
+                            onChangeText={(v)=>handleInputChange('adoptedByName', v)} />
+                    </View>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Adopted By (Email)</Text>
+                        <TextInput style={styles.input}
+                            value={formData.adoptedByEmail}
+                            onChangeText={(v)=>handleInputChange('adoptedByEmail', v)} />
+                    </View>
+                </View>
+            )}
 
             <View style={styles.inputContainer}>
                 <Text style={styles.label}>About *</Text>

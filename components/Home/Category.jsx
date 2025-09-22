@@ -1,4 +1,4 @@
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { collection, getDocs } from 'firebase/firestore'
 import {db} from './../../config/FirebaseConfig'
@@ -16,27 +16,44 @@ export default function Category({category}) {
      */
     const GetCategories=async()=>{
         try {
-            setCategortList([]);
-            
-            // Start with "All" option
-            let categories = [{name: 'All', imageUrl: 'https://via.placeholder.com/40x40/FF6B6B/FFFFFF?text=ALL'}];
-            
-            const snapshot = await getDocs(collection(db,'Category'));
-            snapshot.forEach((doc)=>{
-                categories.push(doc.data());
+            // Prefer local category icons to match the reference UI
+            const localCategories = [
+                { name: 'Dogs', image: require('../../assets/images/Cdog.jpg') },
+                { name: 'Fish', image: require('../../assets/images/Cfish.png') },
+                { name: 'Cats', image: require('../../assets/images/Ccat.png') },
+                { name: 'Birds', image: require('../../assets/images/Cbird.png') },
+            ];
+
+            // Attempt to append any categories from Firestore if available
+            const categoriesFromDb = [];
+            try{
+                const snapshot = await getDocs(collection(db,'Category'));
+                snapshot.forEach((doc)=>{
+                    const data = doc.data();
+                    categoriesFromDb.push({ name: data?.name, imageUrl: data?.imageUrl });
+                });
+            }catch(dbErr){
+                // Ignore DB errors; local icons will still render
+            }
+
+            // Merge while avoiding duplicates by name (local priority)
+            const merged = [...localCategories];
+            categoriesFromDb.forEach(c=>{
+                if (!merged.find(m=>m.name===c.name)) {
+                    merged.push(c);
+                }
             });
-            
-            setCategortList(categories);
-            console.log('Categories loaded:', categories);
+
+            // Prepend All option
+            setCategortList([{ name:'All' }, ...merged]);
         } catch (error) {
-            console.error('Error loading categories:', error);
-            // Fallback to default categories
+            // Final fallback to local only
             setCategortList([
-                {name: 'All', imageUrl: 'https://via.placeholder.com/40x40/FF6B6B/FFFFFF?text=ALL'},
-                {name: 'Dogs', imageUrl: 'https://via.placeholder.com/40x40/4ECDC4/FFFFFF?text=DOG'},
-                {name: 'Cats', imageUrl: 'https://via.placeholder.com/40x40/45B7D1/FFFFFF?text=CAT'},
-                {name: 'Birds', imageUrl: 'https://via.placeholder.com/40x40/96CEB4/FFFFFF?text=BIRD'},
-                {name: 'Fish', imageUrl: 'https://via.placeholder.com/40x40/FFEAA7/FFFFFF?text=FISH'}
+                { name:'All' },
+                { name: 'Dogs', image: require('../../assets/images/Cdog.jpg') },
+                { name: 'Fish', image: require('../../assets/images/Cfish.png') },
+                { name: 'Cats', image: require('../../assets/images/Ccat.png') },
+                { name: 'Birds', image: require('../../assets/images/Cbird.png') },
             ]);
         }
     }
@@ -50,32 +67,40 @@ export default function Category({category}) {
         fontSize:20
       }}>Category</Text>
 
-      <View style={styles.categoryGrid}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingRight: 10 }}
+        style={{ marginTop: 10 }}
+      >
         {categoryList.map((item, index) => (
-            <TouchableOpacity 
-                key={index}
-                onPress={()=>{
-                    setSelectedategory(item.name);
-                    category(item.name)
-                }}
-                style={styles.categoryItem}
-            > 
-                <View style={[styles.conatiner,
-                selectedCategory==item.name&&styles.selectedCategoryContainer]}>
-                    <Image source={{uri:item?.imageUrl}}
-                    style={{
-                        width:40,
-                        height:40
-                    }}
+          <TouchableOpacity 
+              key={index}
+              onPress={()=>{
+                  setSelectedategory(item.name);
+                  category(item.name)
+              }}
+              style={{ marginRight: 12 }}
+          > 
+              <View style={[styles.conatiner,
+              selectedCategory==item.name&&styles.selectedCategoryContainer]}
+              >
+                  {item?.image || item?.imageUrl ? (
+                    <Image 
+                      source={item?.image ? item.image : {uri:item?.imageUrl}}
+                      style={{ width:40, height:40 }}
                     />
-                </View>
-                <Text style={{
-                    textAlign:'center',
-                    fontFamily:'outfit'
-                }}>{item?.name}</Text>
-            </TouchableOpacity>
+                  ) : (
+                    <Text style={{ fontFamily:'outfit', fontSize:16 }}>All</Text>
+                  )}
+              </View>
+              <Text style={{
+                  textAlign:'center',
+                  fontFamily:'outfit'
+              }}>{item?.name}</Text>
+          </TouchableOpacity>
         ))}
-      </View>
+      </ScrollView>
 
     </View>
   )

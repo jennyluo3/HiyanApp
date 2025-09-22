@@ -16,7 +16,7 @@ export default function AboutPet({pet}) {
         fontFamily:'outfit',
         fontSize:14,
         
-      }}>{pet.about}  </Text>
+      }}>{pet?.About || pet?.about || ''}  </Text>
      {readMore&& 
      <Pressable onPress={()=>setReadMore(false)}>
         <Text style={{
